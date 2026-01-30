@@ -1,29 +1,25 @@
 <?php
 /**
- * Plugin Name: SmartBiDi
- * Plugin URI: https://github.com/davidmaimoun/wordpress-plugins/SmartBiDi
- * Description: Automatically detects mixed RTL (Hebrew, Arabic, etc.) and Latin text and applies proper BiDi formatting for optimal display.
- * Version: 1.0.0
- * Author: Your Name
- * Author URI: https://yourwebsite.com
+ * Plugin Name: SmartBiDi Zones RTL
+ * Plugin URI: https://github.com/davidmaimoun/wordpress-plugins/smartbidi
+ * Description: Detects mixed RTL (Hebrew, Arabic, etc.) and Latin text in WooCommerce products and allows forcing RTL on Navbar, Content, and Footer separately.
+ * Version: 2.0.0
+ * Author: David Maimoun
+ * License: GPL v2 or later
+ * Text Domain: smartbidi
+ * Author URI: 
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: smartbidi
  * Domain Path: /languages
- */
+*/
 
-// Security: Prevent direct access
-if (!defined('ABSPATH')) {
-    exit;
-}
+if (!defined('ABSPATH')) exit;
 
-class SmartBidi_Handler {
+class SmartBiDi_Handler {
 
     private static $instance = null;
 
-    /**
-     * Get singleton instance
-     */
     public static function get_instance() {
         if (self::$instance === null) {
             self::$instance = new self();
@@ -31,147 +27,153 @@ class SmartBidi_Handler {
         return self::$instance;
     }
 
-    /**
-     * Constructor
-     */
     private function __construct() {
-        // Load frontend & admin assets
-        add_action('wp_enqueue_scripts', array($this, 'enqueue_assets'));
-        add_action('admin_enqueue_scripts', array($this, 'enqueue_assets'));
+        add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
 
-        // Content filters
-        add_filter('the_content', array($this, 'process_bidi_text'), 999);
-        add_filter('the_title', array($this, 'process_bidi_text'), 999);
-        add_filter('the_excerpt', array($this, 'process_bidi_text'), 999);
-        add_filter('comment_text', array($this, 'process_bidi_text'), 999);
-        add_filter('widget_text', array($this, 'process_bidi_text'), 999);
+        // WooCommerce product titles
+        add_filter('the_title', [$this, 'process_bidi_text'], 999, 1);
+        add_filter('woocommerce_product_get_name', [$this, 'process_bidi_text'], 999, 1);
 
-        // Admin settings
-        add_action('admin_menu', array($this, 'add_admin_menu'));
-        add_action('admin_init', array($this, 'register_settings'));
+        // Admin menu
+        add_action('admin_menu', [$this, 'add_admin_menu']);
+        add_action('admin_init', [$this, 'register_settings']);
+
+        // Apply RTL zones
+        add_action('wp_head', [$this, 'apply_rtl_zones']);
 
         // Shortcode
-        add_shortcode('smartbidi', array($this, 'shortcode_handler'));
+        add_shortcode('smartbidi', [$this, 'shortcode_handler']);
     }
 
-    /**
-     * Enqueue scripts and styles
-     */
     public function enqueue_assets() {
         wp_enqueue_style(
             'smartbidi-style',
             plugin_dir_url(__FILE__) . 'css/style.css',
-            array(),
-            '1.0.0'
+            [],
+            '1.5.0'
         );
-
         wp_enqueue_script(
             'smartbidi-script',
             plugin_dir_url(__FILE__) . 'js/script.js',
-            array('jquery'),
-            '1.0.0',
+            ['jquery'],
+            '1.5.0',
             true
         );
     }
 
-    /**
-     * Detect RTL characters (Hebrew, Arabic, etc.)
-     */
     private function contains_rtl($text) {
         return preg_match('/[\x{0590}-\x{08FF}]/u', $text);
     }
 
-    /**
-     * Detect Latin characters
-     */
     private function contains_latin($text) {
         return preg_match('/[a-zA-Z]/', $text);
     }
 
-    /**
-     * Process BiDi content (RTL + LTR)
-     */
     public function process_bidi_text($content) {
         $enabled = get_option('smartbidi_enable', '1');
-        if ($enabled !== '1') {
-            return $content;
-        }
+        if ($enabled !== '1') return $content;
 
         if ($this->contains_rtl($content) && $this->contains_latin($content)) {
             $content = '<div class="bidi-mixed" dir="auto">' . $content . '</div>';
         } elseif ($this->contains_rtl($content)) {
             $content = '<div class="rtl-only" dir="rtl">' . $content . '</div>';
         }
-
         return $content;
     }
 
-    /**
-     * Shortcode handler
-     */
+    public function apply_rtl_zones() {
+        $css = '';
+        if (get_option('smartbidi_rtl_navbar','0') === '1') {
+            $css .= 'header, .navbar, .site-header { direction: rtl !important; text-align: right !important; }';
+        }
+        if (get_option('smartbidi_rtl_content','0') === '1') {
+            $css .= 'main, .content-area, .site-content, main, .main-content, .container, .wrap { 
+                direction: rtl !important; text-align: right !important; 
+                }';
+        }
+        if (get_option('smartbidi_rtl_footer','0') === '1') {
+            $css .= 'footer, .site-footer { direction: rtl !important; text-align: right !important; }';
+        }
+        if ($css) {
+            echo "<style>$css</style>";
+        }
+    }
+
     public function shortcode_handler($atts, $content = '') {
         return $this->process_bidi_text($content);
     }
 
-    /**
-     * Add admin settings page
-     */
     public function add_admin_menu() {
-        add_options_page(
-            'SmartBiDi Settings',
+        add_menu_page(
+            'SmartBiDi',
             'SmartBiDi',
             'manage_options',
             'smartbidi',
-            array($this, 'admin_page')
+            [$this, 'admin_page'],
+            'dashicons-editor-alignleft',
+            55
         );
     }
 
-    /**
-     * Register settings
-     */
     public function register_settings() {
         register_setting('smartbidi_settings', 'smartbidi_enable');
+        register_setting('smartbidi_settings', 'smartbidi_rtl_navbar');
+        register_setting('smartbidi_settings', 'smartbidi_rtl_content');
+        register_setting('smartbidi_settings', 'smartbidi_rtl_footer');
     }
 
-    /**
-     * Admin settings page
-     */
     public function admin_page() {
         ?>
         <div class="wrap">
             <h1>SmartBiDi Settings</h1>
-
             <form method="post" action="options.php">
                 <?php settings_fields('smartbidi_settings'); ?>
 
                 <table class="form-table">
                     <tr>
                         <th scope="row">
-                            <label for="smartbidi_enable">Enable automatic BiDi detection</label>
+                            <label for="smartbidi_enable">Enable automatic BiDi detection for WooCommerce product titles</label>
                         </th>
                         <td>
-                            <input type="checkbox"
-                                   id="smartbidi_enable"
-                                   name="smartbidi_enable"
-                                   value="1"
-                                   <?php checked(get_option('smartbidi_enable', '1'), '1'); ?>>
-                            <p class="description">
-                                Automatically format mixed RTL (Hebrew, Arabic) and Latin text.
-                            </p>
+                            <input type="checkbox" id="smartbidi_enable" name="smartbidi_enable" value="1" <?php checked(get_option('smartbidi_enable','1'),'1'); ?>>
+                            <p class="description">Automatically format mixed RTL (Hebrew, Arabic, etc.) and Latin text in WooCommerce products.</p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">
+                            <label for="smartbidi_rtl_navbar">Force RTL Navbar</label>
+                        </th>
+                        <td>
+                            <input type="checkbox" id="smartbidi_rtl_navbar" name="smartbidi_rtl_navbar" value="1" <?php checked(get_option('smartbidi_rtl_navbar','0'),'1'); ?>>
+                            <p class="description">Apply RTL direction to your site navbar/header.</p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">
+                            <label for="smartbidi_rtl_content">Force RTL Content</label>
+                        </th>
+                        <td>
+                            <input type="checkbox" id="smartbidi_rtl_content" name="smartbidi_rtl_content" value="1" <?php checked(get_option('smartbidi_rtl_content','0'),'1'); ?>>
+                            <p class="description">Apply RTL direction to main content divs.</p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">
+                            <label for="smartbidi_rtl_footer">Force RTL Footer</label>
+                        </th>
+                        <td>
+                            <input type="checkbox" id="smartbidi_rtl_footer" name="smartbidi_rtl_footer" value="1" <?php checked(get_option('smartbidi_rtl_footer','0'),'1'); ?>>
+                            <p class="description">Apply RTL direction to site footer.</p>
                         </td>
                     </tr>
                 </table>
 
                 <h2>Shortcode</h2>
                 <code>[smartbidi]Mixed RTL and Latin text here[/smartbidi]</code>
-
-                <h2>Live Example</h2>
-                <div style="margin:20px 0;padding:20px;background:#f0f0f0;border-radius:6px;">
-                    <p class="bidi-mixed" dir="auto">
-                        Hello שלום مرحبا World עולם
-                    </p>
-                    <small>This example shows automatic BiDi handling.</small>
-                </div>
 
                 <?php submit_button(); ?>
             </form>
@@ -180,24 +182,19 @@ class SmartBidi_Handler {
     }
 }
 
-/**
- * Initialize plugin
- */
+// Initialize
 function smartbidi_init() {
-    return SmartBidi_Handler::get_instance();
+    return SmartBiDi_Handler::get_instance();
 }
-add_action('plugins_loaded', 'smartbidi_init');
+add_action('plugins_loaded','smartbidi_init');
 
-/**
- * Activation hook
- */
+// Activation hook
 register_activation_hook(__FILE__, function () {
-    add_option('smartbidi_enable', '1');
+    add_option('smartbidi_enable','1');
+    add_option('smartbidi_rtl_navbar','0');
+    add_option('smartbidi_rtl_content','0');
+    add_option('smartbidi_rtl_footer','0');
 });
 
-/**
- * Deactivation hook
- */
-register_deactivation_hook(__FILE__, function () {
-    // Optional cleanup
-});
+// Deactivation hook
+register_deactivation_hook(__FILE__, function () {});
