@@ -1,0 +1,143 @@
+/**
+ * Hebrew Latin Text Handler - Styles
+ * Gestion du formatage RTL et LTR pour texte mixte
+ */
+
+/* Conteneur pour texte mixte hébreu/latin */
+.hebrew-latin-mixed {
+    direction: auto;
+    unicode-bidi: embed;
+    text-align: start;
+}
+
+/* Conteneur pour texte uniquement hébreu */
+.hebrew-only {
+    direction: rtl;
+    text-align: right;
+    unicode-bidi: embed;
+}
+
+/* Support pour les paragraphes à l'intérieur */
+.hebrew-latin-mixed p,
+.hebrew-only p {
+    direction: inherit;
+    unicode-bidi: inherit;
+}
+
+/* Support pour les listes */
+.hebrew-latin-mixed ul,
+.hebrew-latin-mixed ol,
+.hebrew-only ul,
+.hebrew-only ol {
+    direction: inherit;
+}
+
+/* Amélioration de l'espacement pour la lisibilité */
+.hebrew-latin-mixed,
+.hebrew-only {
+    line-height: 1.6;
+    word-spacing: 0.1em;
+}
+
+/* Support pour les titres */
+.hebrew-latin-mixed h1,
+.hebrew-latin-mixed h2,
+.hebrew-latin-mixed h3,
+.hebrew-latin-mixed h4,
+.hebrew-latin-mixed h5,
+.hebrew-latin-mixed h6,
+.hebrew-only h1,
+.hebrew-only h2,
+.hebrew-only h3,
+.hebrew-only h4,
+.hebrew-only h5,
+.hebrew-only h6 {
+    direction: inherit;
+    text-align: inherit;
+}
+
+/* Support pour les blockquotes */
+.hebrew-latin-mixed blockquote,
+.hebrew-only blockquote {
+    direction: inherit;
+    border-left: none;
+}
+
+.hebrew-only blockquote {
+    border-right: 4px solid #ccc;
+    padding-right: 1em;
+    padding-left: 0;
+    margin-right: 0;
+}
+
+/* Support pour les formulaires et inputs */
+.hebrew-latin-mixed input[type="text"],
+.hebrew-latin-mixed input[type="email"],
+.hebrew-latin-mixed input[type="url"],
+.hebrew-latin-mixed textarea,
+.hebrew-only input[type="text"],
+.hebrew-only input[type="email"],
+.hebrew-only input[type="url"],
+.hebrew-only textarea {
+    direction: inherit;
+    text-align: inherit;
+}
+
+/* Ajustement pour les commentaires WordPress */
+.comment-content .hebrew-latin-mixed,
+.comment-content .hebrew-only {
+    margin: 0;
+}
+
+/* Support pour l'éditeur WordPress (Gutenberg) */
+.editor-styles-wrapper .hebrew-latin-mixed,
+.editor-styles-wrapper .hebrew-only {
+    direction: inherit;
+}
+
+/* Amélioration de la ponctuation mixte */
+.hebrew-latin-mixed {
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+/* Support pour les tableaux */
+.hebrew-only table {
+    direction: rtl;
+}
+
+.hebrew-only table th,
+.hebrew-only table td {
+    text-align: right;
+}
+
+/* Support mobile */
+@media screen and (max-width: 768px) {
+    .hebrew-latin-mixed,
+    .hebrew-only {
+        font-size: 1em;
+        line-height: 1.7;
+    }
+}
+
+/* Correction pour éviter les problèmes de direction avec les emojis */
+.hebrew-latin-mixed img.emoji,
+.hebrew-only img.emoji {
+    display: inline !important;
+    vertical-align: middle;
+}
+
+/* Support pour les liens */
+.hebrew-latin-mixed a,
+.hebrew-only a {
+    unicode-bidi: embed;
+}
+
+/* Optimisation pour l'impression */
+@media print {
+    .hebrew-latin-mixed,
+    .hebrew-only {
+        direction: inherit;
+        page-break-inside: avoid;
+    }
+}
