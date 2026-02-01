@@ -1,12 +1,12 @@
 <?php
 /**
- * Plugin Name: SmartBiDi
- * Plugin URI:https://github.com/davidmaimoun/wordpress-plugins/smartbidi
- * Description: Automatically detects mixed RTL (Hebrew, Arabic, etc.) and Latin text and applies proper BiDi formatting for optimal display when adding Woo products. Optional "Force RTL" mode for all pages.
+ * Plugin Name: SmartBiDi Zones RTL
+ * Plugin URI: https://github.com/davidmaimoun/wordpress-plugins/smartbidi
+ * Description: Detects mixed RTL (Hebrew, Arabic, etc.) and Latin text in WooCommerce products and allows forcing RTL on Navbar, Content, and Footer separately.
  * Version: 1.0.0
  * Author: David Maimoun
- * Author URI: 
- * License: GPL v2 or later
+ * Author URI: https://github.com/davidmaimoun
+ * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: smartbidi
  * Domain Path: /languages
