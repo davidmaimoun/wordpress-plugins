@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: SmartBiDi Zones RTL
+ * Plugin Name: SmartBiDi
  * Plugin URI: https://github.com/davidmaimoun/wordpress-plugins/smartbidi
  * Description: Detects mixed RTL (Hebrew, Arabic, etc.) and Latin text in WooCommerce products and allows forcing RTL on Navbar, Content, and Footer separately.
  * Version: 2.0.0
