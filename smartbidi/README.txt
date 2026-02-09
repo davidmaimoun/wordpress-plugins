@@ -1,4 +1,4 @@
-=== SmartBiDi ===
+=== SmartBiDi RTL Fixer ===
 Contributors: davidmaimoun
 Tags: rtl, hebrew, arabic, woocommerce, bidi
 Requires at least: 6.0
